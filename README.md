@@ -1,6 +1,7 @@
 # e621-userscript
 Downloader and scrapper for e621 pools, sets and posts(tags). JavaScript (userscript) version of my bash script.
 
+Reply for functions, style edit or what you want in e621:https://e621.net/forum_topics/26236
 # To-Do
 
 + Add scraper to all page

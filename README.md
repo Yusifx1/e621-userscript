@@ -3,7 +3,7 @@ Downloader and scrapper for e621 pools, sets and posts(tags). JavaScript (usersc
 
 Reply for functions, style edit or what you want in e621:https://e621.net/forum_topics/26236
 
-# Futures
+# Feature's
 
 + Download and scrape pools
 + You can limit of pool download/scrape. Like if you don't want first 11 posts of pool

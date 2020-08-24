@@ -3,16 +3,11 @@
   "description": "Download and scrape e621 pools and etc.",
   "manifest_version": 2,
   "name": "e621downloader",
-  "version": "0.97",
+  "version": "1.0.0",
   "homepage_url": "https://github.com/Yusifx1/e621-userscript-and-extension",
   "icons": {
     "48": "icons/e621-48.png"
   },
-"browser_specific_settings": {
-  "gecko": {
-    "id": "yusif.e.shukurov@gmail.com"
-  }
-},
 "permissions": [
     "*://www.furaffinity.net/*" ,
   "downloads" 

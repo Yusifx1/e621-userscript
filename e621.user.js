@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         e621
-// @version      0.95
+// @version      1.0.0
 // @homepageURL https://github.com/Yusifx1/e621-userscript/
 // @downloadURL        https://github.com/Yusifx1/e621-userscript/releases/latest/download/e621.user.js
 // @description  e621 pool and etc. downloader and parser

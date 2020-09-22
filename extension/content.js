@@ -116,7 +116,7 @@ downdiv.appendChild(sym).appendChild(inputsym);
 
 var info= document.createElement("span");
 info.style='background-color:#102545;display: block; font-size: 12px;border-radius: 8px;;padding: 15px;';
-info.innerHTML="<strong>Fill input field to replace illegal character for your OS. It make half-width to <\strong>ｆｕｌｌ－ｗｉｄｔｈ <br>For Windows - [/?<>\\:*|\\\"] <br> For Android you should use [\\[\\]\\\\:?;*+/=<|>\\\"]  <br> You can make any character full-width. Just write character in bracket [anycharacter]. Some special character write with \\ (like \\\, it will replace backslash). For more <a href = https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words>info </a>";
+info.innerHTML="<strong>Fill input field to replace illegal character for your OS. It make half-width to <\strong>ｆｕｌｌ－ｗｉｄｔｈ <br>For Windows - [/?<>\\:*|\\\"] <br> For Android you should use [\\[\\]\\\\:?;*+/=<|>\\\"]  <br> You can make any character full-width. Just write character in bracket [anycharacter]. Some special character write with \\ (like \\\\, it will replace backslash). For more <a href = https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words>info </a>";
 downdiv.appendChild(info);
 
 var rep = document.createElement("H3");
@@ -195,7 +195,7 @@ function tab() {
 function reset () {
 saved={};
 saved.name="pool-%id%_%name%/%count%_%md5%";
-saved.sym="[\\[\\]\\\\:?;*+/=<|>\"]";
+saved.sym="[\\[\\]\\\\:?;*+/=<|>\\\"]";
 saved.check=true;
 saved.join="-";
 saved.check2=true;
@@ -204,6 +204,34 @@ saved.res="Sample";
 saved.step=10;
 window.localStorage.setItem("e621downByYusifx1",JSON.stringify(saved))
 }
+
+
+if ( loc.match(/\/post_sets\/\d/) ) {
+var gallery = document.createElement("button");
+gallery.innerHTML = "Gallery";
+topbody.appendChild(gallery);
+gallery.style=mstyle;
+gallery.style.float="right";
+gallery.addEventListener ("click", function() { galdiv("set")});
+
+var button = document.createElement("button");
+button.innerHTML = "Download Set";
+topbody.appendChild(button);
+button.style = mstyle;
+button.addEventListener ("click", pool );
+var button5 = document.createElement("button");
+button5.innerHTML = "Scrape set";
+topbody.appendChild(button5);
+button5.style = mstyle;
+button5.addEventListener ("click", scrape);
+var input = document.createElement("input");
+input.placeholder="Scrape/down from # post";
+topbody.appendChild(input);
+var input2 = document.createElement("input");
+input2.placeholder="To # post";
+topbody.appendChild(input2);
+}
+
 
 if ( loc.match(/\/pools\/*/) ) {
 var gallery = document.createElement("button");
@@ -231,6 +259,9 @@ var input2 = document.createElement("input");
 input2.placeholder="To # post";
 topbody.appendChild(input2);
 }
+
+
+
 if ( loc == "/posts" ) {
 onepage();
 allpage();
@@ -242,14 +273,17 @@ gallery.style.float="right";
 gallery.addEventListener ("click", function() { galdiv("post")});
 }
 function pool() {
-if (window.confirm("Download pool?")) {
 if (act==0) {
 scrape();
 }   
 dpool();
 }
-}
+
 function getid() {
+
+
+
+
 if ( loc.match(/pools\/\d/) ) {
 url="https://"+host+ loc + ".json";
 xhr.open('GET', url, false);
@@ -258,6 +292,13 @@ xhr.send();
 json=xhr.responseText ;
 json=JSON.parse(json);
 
+}else if ( loc.match(/\/post_sets\/\d/) ) {
+url="https://"+host+ loc + ".json";
+xhr.open('GET', url, false);
+xhr.setRequestHeader("User-Agent","e621byYusifx1/0.95 userscript");
+xhr.send();
+json=xhr.responseText ;
+json=JSON.parse(json);
 }
 else{
 loc=window.location.search;
@@ -336,13 +377,12 @@ function geturl() {
 list=[]
 ext=[]
 sample=[]
-
 for ( x=0 ; x < purl.length;x++) {
-
 
 var e= purl[x].file.ext;
 var md5= purl[x].file.md5;
 var smpl=purl[x].sample.url;
+
 var fl ="https://static1.e621.net/data/" + md5[0] + md5[1] + "/" + md5[2] + md5[3]+ "/" + md5 + "." + e
 if (purl[x].flags.deleted) {
 
@@ -374,7 +414,13 @@ fl='https:' + page.match(new RegExp(/href="(.*)">Download<\/a>/))[1];
 }
 
 }
-if (smpl=="null") {smpl=fl}
+if (smpl==null) {
+if (purl[x].sample.has==true) {
+smpl="https://static1.e621.net/data/sample/" + md5[0] + md5[1] + "/" + md5[2] + md5[3]+ "/" + md5 + ".jpg"
+} else {
+smpl=fl
+}
+}
 sample.push(smpl);
 list.push(fl);
 ext.push(e);
@@ -420,6 +466,11 @@ button3.style = mstyle;
 button3.addEventListener ("click", function() {
 if (window.location.search.length==0){var loc="?";
 }else {loc=window.location.search}
+if ( window.location.pathname.match(/post_sets\/\d/) ) {
+loc="?tags=set%3A"
+loc+=window.location.pathname.slice(11)
+}
+val.name=fullw(val.name)
 page=1;
 var plimit = prompt("Please enter page count that you want. Like 3 for 3 page or any text like yiff time for all page (page=320 posts):", "all");
 if (plimit !== null) {
@@ -578,7 +629,7 @@ return aa.replace(re,s =>   String.fromCharCode(s.charCodeAt(0) + 0xFF00 - 0x2
 
 function galdiv (cpos) {
 var gallerydiv = document.createElement("div");
-gallerydiv.style='text-align: center;overflow-y: auto;background-image: url("/packs/media/src/styles/images/hexagon/background-ea57599555451c53af1db0db4f5b2664.png");background-color: #102545; border-radius: 8px;position: fixed;left: 10vw;width: 80vw;top:5vh;';
+gallerydiv.style='text-align: center;overflow-y: auto;overflow-x: hidden;background-image: url("/packs/media/src/styles/images/hexagon/background-ea57599555451c53af1db0db4f5b2664.png");background-color: #102545; border-radius: 8px;position: fixed;left: 10vw;width: 80vw;top:5vh;';
 gallerydiv.style.zIndex=98;
 body.appendChild(gallerydiv);
 var watchpool = document.createElement("button");
@@ -604,6 +655,9 @@ gallerydiv.innerHTML="";
 if (act==0 && cpos=="pool") {
 scrape();
 }
+if (act==0 && cpos=="set") {
+scrape();
+}
 if (cpos=="post" && act ==0) {
 var ps=document.querySelectorAll ( '.post-preview' );
 if ( ps !== null ) { 	
@@ -619,6 +673,7 @@ gallerydiv.style.height="100%";
 gallerydiv.style.top=0;
 
 var imgsrc=list;
+
 if ( saved.res=="Sample" ) {
 imgsrc= sample;
 }
@@ -714,16 +769,17 @@ aaaa.innerHTML="loading..."
 gallerydiv.appendChild(aaaa)
 
 for (x=page;x<nextpost;x++) {
-
 if (list[x].includes('webm')) {
  img=document.createElement("video");
  img.setAttribute("controls","controls");
 img.poster=imgsrc[x]
 img.src=list[x];
+
 } else {var img=document.createElement("img");
 img.src=imgsrc[x];}
 img.style='width: 100%;';
-if (step==1) {img.style='width: 100%;position:absolute;top:0; left:0; right:0;bottom:0;margin:auto;';}
+if (step==1) {img.style='position:absolute;top:60px; left:0; right:0;bottom:0;margin:auto;max-width: 100%;max-height:calc(100% - 60px);';
+gallerydiv.style.overflowY="hidden";}
 gallerydiv.appendChild(img);
 }
 }

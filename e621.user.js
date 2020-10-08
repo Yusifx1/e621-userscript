@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         e621
-// @version      1.0.0
+// @version      1.2.1
 // @homepageURL https://github.com/Yusifx1/e621-userscript/
 // @downloadURL        https://github.com/Yusifx1/e621-userscript/releases/latest/download/e621.user.js
 // @description  e621 pool and etc. downloader and parser
@@ -12,15 +12,14 @@
 // @grant  GM_getValue
 // ==/UserScript==
 
-var cpu = window.location.href,
-host=window.location.hostname,
+var host=window.location.hostname,
 loc= window.location.pathname,
 topbody = document.querySelector ( '#top' ),
 body=document.body,
-ids,name,url,a,l,span,count,json,pac,pools,page,id,p,fl,x,src,pc,purl,max,min,result;
+ids,scrolldelay,cgp,url,select,a,l,img,span,count,json,pac,pools,page,id,p,x,src,pc,purl,max,min;
 var clist ="";
 var xhr = new XMLHttpRequest();
-var useragent="\"User-Agent\",\"e621byYusifx1/0.95 userscript\"";
+var useragent="\"User-Agent\",\"e621byYusifx1/1.2.1 userscript\"";
 var list=[];
 var sample=[];
 var ext=[];
@@ -29,34 +28,46 @@ var val={};
 var mstyle='background-color: #00549e;color:white;font-size: 18px;cursor: pointer;border-radius: 8px;';	
 var sstyle = 'background-color:#102545;display: block; font-size: 12px;border-radius: 8px;max-height: 150px; overflow: auto;column-count:2;color:blue;cursor:pointer'; 		
 var fncstyle='background-color: #9e5a00;color:white;font-size: 14px;cursor: pointer;border-radius: 8px;';	
-var smstyle='background-color: #eee; color: #444; cursor: pointer; padding: 18px;width: 100%; border: none; outline: none;';
-var saved =GM_getValue( "e621downByYusifx1", "null");
-if (saved=="null") {
-reset();}
+var saved=GM_getValue( "e621downByYusifx1", "null");
+if (saved) {
+if (!saved.name) {saved.name="pool-%id%_%name%/%count%_%md5%";}
+if (!saved.sname) {saved.sname="set-%id%_%name%/%count%_%md5%";}
+if (!saved.sym) {saved.sym="[\\[\\]\\\\:?;*+/=<|>\\\"]";}
+if (!saved.check) {saved.check="true";}
+if (!saved.join) {saved.join="-";}
+if (!saved.check3) {saved.check3="false";}
+if (!saved.res) {saved.res="Sample";}
+if (!saved.step) {saved.step=10;}
+if (!saved.slidespeed) {saved.slidespeed=2;}
+if (!saved.scroll) {saved.scroll="Focus on image";}
+} else {
+reset();
+}
 
 function settings () {
+mb.disabled=true;
 
 var div = document.createElement("div");
 div.style='background-image: url("/packs/media/src/styles/images/hexagon/background-ea57599555451c53af1db0db4f5b2664.png");background-color: #102545; border-radius: 8px;position: absolute;left: 20vw;width: 60vw;top: 10vh;padding: 15px;';
 body.appendChild(div);
-
-    div.style.zIndex = "99"
+div.style.zIndex = "99";
 
 var head=document.createElement("p");
-head.innerHTML="E621 downloader (1.0.1)"
+head.innerHTML="E621 downloader (1.2.1)";
 div.appendChild(head);
 
 var mb1 = document.createElement("button");
 mb1.innerHTML="x";
 div.appendChild(mb1);
 mb1.style="position: absolute;color:white;background-color: transparent;top:0;right: 5px;font-size: 30px;";
-mb1.addEventListener ("click", function() { div.remove();});
+mb1.addEventListener ("click", function() { div.remove();mb.disabled=false;});
 	
 var setmenu=document.createElement("button");
 setmenu.innerHTML="Download";
 setmenu.style='background-color: #eee; color: #444; cursor: pointer; width: 100%; border: none; outline: none;';
 setmenu.addEventListener("click", tab);
 div.appendChild(setmenu);
+
 	
 var downdiv = document.createElement("div");
 downdiv.style='padding: 0 18px;background-color: transparent;display: none;overflow: hidden;';
@@ -80,23 +91,53 @@ gsdiv.appendChild(header);
 var label= document.createElement("H3");
 label.innerHTML="Image quality ";
 
-var select = document.createElement("select");
+var selecte = document.createElement("select");
  var option = document.createElement("option");
     option.text = "Sample";
-    select.appendChild(option);
+    selecte.appendChild(option);
 option = document.createElement("option");
     option.text = "Source";
-    select.appendChild(option);
-select.value=saved.res;
-gsdiv.appendChild(label).appendChild(select);
+    selecte.appendChild(option);
+selecte.value=saved.res;
+gsdiv.appendChild(label).appendChild(selecte);
 
 
 var stept= document.createElement("H3");
 stept.innerHTML="Post count per gallery page:  ";
 
 var stepin= document.createElement("input");
+stepin.type= "number";
+stepin.min="1";
+stepin.style.width="50px";
 stepin.value=saved.step;
 gsdiv.appendChild(stept).appendChild(stepin);
+
+var slsp= document.createElement("H3");
+slsp.innerHTML="Slideshow delay:  ";
+
+var slss= document.createElement("input");
+slss.type="number";
+slss.style.width = "50px";
+slss.min="0.1";
+slss.step="0.1";
+slss.value=saved.slidespeed;
+gsdiv.appendChild(slsp).appendChild(slss);
+
+label= document.createElement("H3");
+label.innerHTML="Slideshow style  ";
+
+var select2 = document.createElement("select");
+option = document.createElement("option");
+    option.text = "Focus on image";
+    select2.appendChild(option);
+option = document.createElement("option");
+    option.text = "Fullscreen";
+    select2.appendChild(option);
+option = document.createElement("option");
+    option.text = "Scroll";
+    select2.appendChild(option);
+select2.value=saved.scroll;
+gsdiv.appendChild(label).appendChild(select2);
 
 
 var header2 = document.createElement("H1");
@@ -110,6 +151,13 @@ folder.innerHTML="Pool download name and direction ";
 var inputfol = document.createElement("input");
 inputfol.value=saved.name;
 downdiv.appendChild(folder).appendChild(inputfol);
+
+var sfolder= document.createElement("H3");
+sfolder.innerHTML="Set download name and direction ";
+
+var sinputfol = document.createElement("input");
+sinputfol.value=saved.sname;
+downdiv.appendChild(sfolder).appendChild(sinputfol);
 
 var avvar= document.createElement("span");
 avvar.style='background-color:#102545;display: block; font-size: 12px;border-radius: 8px;column-count:2;padding: 15px;';
@@ -125,14 +173,14 @@ inputsym.value=saved.sym;
 downdiv.appendChild(sym).appendChild(inputsym);
 
 var info= document.createElement("span");
-info.style='background-color:#102545;display: block; font-size: 12px;border-radius: 8px;;padding: 15px;';
+info.style='background-color:#102545;display: block; font-size: 12px;border-radius: 8px;padding: 15px;';
 info.innerHTML="<strong>Fill input field to replace illegal character for your OS. It make half-width to <\strong>ｆｕｌｌ－ｗｉｄｔｈ <br>For Windows - [/?<>\\:*|\\\"] <br> For Android you should use [\\[\\]\\\\:?;*+/=<|>\\\"]  <br> You can make any character full-width. Just write character in bracket [anycharacter]. Some special character write with \\ (like \\\\, it will replace backslash). For more <a href = https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words>info </a>";
 downdiv.appendChild(info);
 
 var rep = document.createElement("H3");
 rep.innerHTML="Replace \"_\" in name with space:  ";
 
-var check = document.createElement("INPUT");
+var check = document.createElement("input");
 check.setAttribute("type", "checkbox");
 check.checked=saved.check;
 downdiv.appendChild(rep).appendChild(check);
@@ -141,8 +189,10 @@ var array= document.createElement("H3");
 array.innerHTML="Connect variable with several value like tags:  ";
 
 var join = document.createElement("input");
+join.style.width = "50px";
 join.value=saved.join;
 downdiv.appendChild(array).appendChild(join);
+
 
 var mb2= document.createElement("button");
 mb2.innerHTML="Save";
@@ -157,21 +207,21 @@ mb3.addEventListener ("click", reset);
 function saveset () {
 saved={};
 saved.name=inputfol.value;
+saved.sname=sinputfol.value;
 saved.sym=inputsym.value;
 saved.check=check.checked;
 saved.join=join.value;
-saved.check2=false;
-saved.check3=false;
-saved.res=select.value;
+saved.res=selecte.value;
 saved.step=stepin.value;
- GM_setValue("e621downByYusifx1",saved);
+saved.slidespeed=slss.value;
+saved.scroll=select2.value;
+GM_setValue("e621downByYusifx1",saved);
 }
 }
-
 var mb = document.createElement("button");
-mb.innerHTML = "settings";
-topbody.appendChild(mb);
-mb.style=mstyle;
+mb.innerHTML = "Settings";
+document.getElementsByTagName("menu")[1].appendChild(mb);
+mb.style='background-color: transparent;font-weight:bold;color: #b4c7d9;cursor: pointer;';
 mb.style.float="right";
 mb.addEventListener ("click", settings);
 
@@ -189,15 +239,45 @@ function tab() {
 function reset () {
 saved={};
 saved.name="pool-%id%_%name%/%count%_%md5%";
-saved.sym="[\\[\\]\\\\:?;*+/=<|>\"]";
+saved.sname="set-%id%_%name%/%count%_%md5%";
+saved.sym="[\\[\\]\\\\:?;*+/=<|>\\\"]";
 saved.check=true;
 saved.join="-";
-saved.check2=false;
 saved.check3=false;
 saved.res="Sample";
 saved.step=10;
+saved.slidespeed=2;
+saved.scroll="Focus on image";
 GM_setValue("e621downByYusifx1",saved);
 }
+
+
+if ( loc.match(/\/post_sets\/\d/) ) {
+var gallery = document.createElement("button");
+gallery.innerHTML = "Gallery";
+topbody.appendChild(gallery);
+gallery.style=mstyle;
+gallery.style.float="right";
+gallery.addEventListener ("click", function() { galdiv("set");});
+
+var button = document.createElement("button");
+button.innerHTML = "Download Set";
+topbody.appendChild(button);
+button.style = mstyle;
+button.addEventListener ("click", pool );
+var button5 = document.createElement("button");
+button5.innerHTML = "Scrape set";
+topbody.appendChild(button5);
+button5.style = mstyle;
+button5.addEventListener ("click", scrape);
+var input = document.createElement("input");
+input.placeholder="Scrape/down from # post";
+topbody.appendChild(input);
+var input2 = document.createElement("input");
+input2.placeholder="To # post";
+topbody.appendChild(input2);
+}
+
 
 if ( loc.match(/\/pools\/*/) ) {
 var gallery = document.createElement("button");
@@ -205,14 +285,16 @@ gallery.innerHTML = "Gallery";
 topbody.appendChild(gallery);
 gallery.style=mstyle;
 gallery.style.float="right";
-gallery.addEventListener ("click", function() { galdiv("pool")});
+gallery.addEventListener ("click", function() { galdiv("pool");});
 
 var button = document.createElement("button");
 button.innerHTML = "Download Pool";
 topbody.appendChild(button);
 button.style = mstyle;
 button.addEventListener ("click", pool );
+if ( loc.match(/pools\/\d/) ) {
 onepage();
+}
 var button5 = document.createElement("button");
 button5.innerHTML = "Scrape pool";
 topbody.appendChild(button5);
@@ -225,6 +307,9 @@ var input2 = document.createElement("input");
 input2.placeholder="To # post";
 topbody.appendChild(input2);
 }
+
+
+
 if ( loc == "/posts" ) {
 onepage();
 allpage();
@@ -233,31 +318,38 @@ gallery.innerHTML = "Gallery";
 topbody.appendChild(gallery);
 gallery.style=mstyle;
 gallery.style.float="right";
-gallery.addEventListener ("click", function() { galdiv("post")});
+gallery.addEventListener ("click", function() { galdiv("post");});
 }
 function pool() {
-if (window.confirm("Download pool?")) {
 if (act==0) {
 scrape();
 }   
 dpool();
 }
-}
+
 function getid() {
+
 if ( loc.match(/pools\/\d/) ) {
 url="https://"+host+ loc + ".json";
 xhr.open('GET', url, false);
-xhr.setRequestHeader("User-Agent","e621byYusifx1/0.95 userscript");
+xhr.setRequestHeader("User-Agent","e621byYusifx1/1.2.1 userscript");
 xhr.send();
 json=xhr.responseText ;
 json=JSON.parse(json);
 
+}else if ( loc.match(/\/post_sets\/\d/) ) {
+url="https://"+host+ loc + ".json";
+xhr.open('GET', url, false);
+xhr.setRequestHeader("User-Agent","e621byYusifx1/1.2.1 userscript");
+xhr.send();
+json=xhr.responseText ;
+json=JSON.parse(json);
 }
 else{
 loc=window.location.search;
 url="https://"+host+"/pools.json"+loc;
 xhr.open('GET', url, false);
-xhr.setRequestHeader("User-Agent","e621byYusifx1/0.95 userscript");
+xhr.setRequestHeader("User-Agent","e621byYusifx1/1.2.1 userscript");
 xhr.send();
 json=xhr.responseText ;
 json=JSON.parse(json);
@@ -268,7 +360,7 @@ pools+=json[x].id+" - ";
 pools+=json[x].name.replace(/_/g," ");
 }
 if ( json.length==1 ) {
-var select=1;
+select=1;
 } else {
 alert(pools);
 select=prompt( "select pool number", "1");
@@ -280,9 +372,7 @@ val.name= json.name;
 if (saved.check) {
 val.name= val.name.replace(/_/gi, " ");
 }
-val.creatorid =json.creator_id;
 val.category = json.category;
-val.creatorname = json.creator_name;
 
 id=json.id;
 val.id=id;
@@ -293,32 +383,35 @@ min=input.value-1;
 topbody.removeChild(input);
 topbody.removeChild(input2);
 act=1;
-if (max=="") {max=pc}
-if (min=="-1") {min=0}
+if (max=="") {max=pc;}
+if (min=="-1") {min=0;}
 pac=Math.ceil(pc/320);
 ids= json.post_ids;
 ids=ids.slice(min,max);
 }
 function getpl() {
 var obj = [];
-url="https://"+host+"/posts.json?tags=status:any+"
+url="https://"+host+"/posts.json?tags=status:any+";
 
   for (page=1;page<pac+1;page++) {
 if ( ids.length <=100) {
 url = url+"id:"+ids+"&limit=101";
 pac=1;
 }else{
-url = url+"pool:"+id+"&limit=320&page="+page;
+if (loc.match(/\/post_sets\/\d/) ) {
+url=url+"set:"+id+"&limit=320&page="+page;
+} else {
+url=url+"pool:"+id+"&limit=320&page="+page;
 }
-
+}
 button5.textContent = "Scraping page "+page;
 xhr.open('GET', url, false);
-xhr.setRequestHeader("User-Agent","e621byYusifx1/0.95 userscript");
+xhr.setRequestHeader("User-Agent","e621byYusifx1/1.2.1 userscript");
 xhr.send();
 json=xhr.responseText ;
 json=JSON.parse(json);  
 obj.push(...json.posts);  }
-purl= ids.map(id => obj.find(post => post.id === id))
+purl= ids.map(id => obj.find(post => post.id === id));
     purl = purl.filter(function (el) {   return el != null;
 });
    
@@ -326,18 +419,17 @@ purl= ids.map(id => obj.find(post => post.id === id))
 
  
 function geturl() {
-	var x;
-list=[]
-ext=[]
-sample=[]
-
-for ( x=0 ; x < purl.length;x++) {
-
+var x;
+list=[];
+ext=[];
+sample=[];
+for (x=0 ; x < purl.length;x++) {
 
 var e= purl[x].file.ext;
 var md5= purl[x].file.md5;
 var smpl=purl[x].sample.url;
-var fl ="https://static1.e621.net/data/" + md5[0] + md5[1] + "/" + md5[2] + md5[3]+ "/" + md5 + "." + e
+
+var fl ="https://static1.e621.net/data/" + md5[0] + md5[1] + "/" + md5[2] + md5[3]+ "/" + md5 + "." + e;
 if (purl[x].flags.deleted) {
 
   l=purl[x].sources.join("\n");
@@ -349,26 +441,14 @@ fl=a[0];
 e=a[1];
 }
 
-if ( fl == "not work in userscript" && saved.check3 ) {
-if (l.match(/.*www.furaffinity.net\/view\/.*/)) {
-var fa=l.match(/.*www.furaffinity.net\/view\/.*/);
-xhr.open('GET', fa,false);
-xhr.send();
-  if (xhr.status !== 200) { 
-
-     fl="Error"+xhr.status;
-  } else { 
-    
-var page=xhr.responseText;
-if (page.match(new RegExp(/href="(.*)">Download<\/a>/))){
-fl='https:' + page.match(new RegExp(/href="(.*)">Download<\/a>/))[1];
+}
+if (smpl==null) {
+if (purl[x].sample.has==true) {
+smpl="https://static1.e621.net/data/sample/" + md5[0] + md5[1] + "/" + md5[2] + md5[3]+ "/" + md5 + ".jpg";
+} else {
+smpl=fl;
 }
 }
-}
-}
-
-}
-if (smpl=="null") {smpl=fl}
 sample.push(smpl);
 list.push(fl);
 ext.push(e);
@@ -379,26 +459,28 @@ function dpool() {
 var x=min+1;
 pc=list.length;
 
-var downname=saved.name
-downname=downname.replace(/\//gi,"folderslash");
-downname=downname.replace(/%id%/gi, val.id).replace(/%name%/gi, val.name).replace(/%pool%/gi, val.pool).replace(/%creatorid%/gi, val.creatorid).replace(/%category%/gi, val.category).replace(/%creatorname%/gi, val.creatorname).replace(/%pc%/gi, val.pc)
+var downname=saved.name;
 
-var j =saved.join
+if (loc.match(/\/post_sets\//) ) {
+downname=saved.sname;
+} 
+downname=downname.replace(/\//gi,"folderslash");
+downname=downname.replace(/%id%/gi, val.id).replace(/%name%/gi, val.name).replace(/%pool%/gi, val.pool).replace(/%category%/gi, val.category).replace(/%pc%/gi, val.pc);
+
+var j =saved.join;
 for (var i=0;i<list.length;i++) {
 count = x.toString(10).padStart(3, "0");
     var url=list[i];
-  var file=downname.replace(/%count%/gi,count).replace(/%md5%/gi,purl[i].file.md5 ).replace(/%width%/gi,purl[i].file.width ).replace(/%height%/gi,purl[i].file.height ).replace(/%post_id%/gi, purl[i].id ).replace(/%species%/gi, purl[i].tags.species.join(j)).replace(/%character%/gi, purl[i].tags.character.join(j)).replace(/%artist%/gi, purl[i].tags.artist.join(j)).replace(/%copyright%/gi, purl[i].tags.copyright.join(j)).replace(/%meta%/gi, purl[i].tags.meta.join(j))
-
+  var file=downname.replace(/%count%/gi,count).replace(/%md5%/gi,purl[i].file.md5 ).replace(/%width%/gi,purl[i].file.width ).replace(/%height%/gi,purl[i].file.height ).replace(/%post_id%/gi, purl[i].id ).replace(/%species%/gi, purl[i].tags.species.join(j)).replace(/%character%/gi, purl[i].tags.character.join(j)).replace(/%artist%/gi, purl[i].tags.artist.join(j)).replace(/%copyright%/gi, purl[i].tags.copyright.join(j)).replace(/%meta%/gi, purl[i].tags.meta.join(j));
 
 file=fullw(file);
 file=file.replace(/folderslash/gi, "\/");
-GM_download( url , file+"."+ext[i]);
- 
-    
-x++
-}
-}
 
+GM_download( url , file+"."+ext[i]);
+ 
+x++;
+}
+}
 
 function allpage() {
     var obj=[];
@@ -409,8 +491,13 @@ button3.innerHTML = "Get all post links";
 topbody.appendChild(button3);
 button3.style = mstyle;
 button3.addEventListener ("click", function() {
-if (window.location.search.length==0){var loc="?";
-}else {loc=window.location.search}
+if (window.location.search.length==0){loc="?";
+}else {loc=window.location.search;}
+if ( window.location.pathname.match(/post_sets\/\d/) ) {
+loc="?tags=set%3A";
+loc+=window.location.pathname.slice(11);
+}
+val.name=fullw(val.name);
 page=1;
 var plimit = prompt("Please enter page count that you want. Like 3 for 3 page or any text like yiff time for all page (page=320 posts):", "all");
 if (plimit !== null) {
@@ -418,30 +505,29 @@ pc=320;
 while (pc==320) {
 button3.textContent = "Scraping page "+page+"...";
 
-url="https://"+host+"/posts.json"+loc+"&limit=320&page="+page
+url="https://"+host+"/posts.json"+loc+"&limit=320&page="+page;
 
 xhr.open('GET', url, false);
-xhr.setRequestHeader("User-Agent","e621byYusifx1/0.95 userscript");
+xhr.setRequestHeader("User-Agent","e621byYusifx1/1.2.1 userscript");
 xhr.send();
 
 var json=JSON.parse(xhr.responseText) ;
 obj.push(...json.posts);
 pc=json.posts.length;
 
-if (page==plimit) {pc="what you are doing here?"}
-page++   }
+if (page==plimit) {pc="what you are doing here?";}
+page++;  }
 
 purl= obj;
 
-
  geturl();
-act=2
+act=2;
 button3.style.visibility = 'hidden';
 cleanlist();
 spanal();
 copyToClipboard();
 save();
-}})}
+}});}
 
 
 function onepage() {
@@ -453,7 +539,8 @@ button2.addEventListener ("click", function() {
 var	post = document.querySelectorAll ( '.post-preview' ),
 span = document.createElement ( 'span' );
 span.style=sstyle;
-if ( post !==null ) { 	for ( x = 0; x < post.length; x++ ) {  	
+if ( post !==null ) { 	
+for ( x = 0; x < post.length; x++ ) {  	
 src = post[x].getAttribute ('data-file-url');   
 	var btn=document.createElement("a");
 var link=document.createTextNode(src); 
@@ -482,7 +569,7 @@ button4.addEventListener ("click", function() {    
     dummy.select();
     document.execCommand("copy");
     body.removeChild(dummy);
-})
+});
 }
 function scrape () {
 getid();
@@ -496,7 +583,7 @@ save();
 
 }
 function cleanlist() {
-for (x=0;x<list.length;x++){   clist=list.join("\n")   }
+for (x=0;x<list.length;x++){ clist=list.join("\n"); }
 }
 function spanal() {
 var button7= document.createElement("button");    
@@ -532,7 +619,7 @@ hiddenElement.href = 'data:attachment/text,' + encodeURI(clist);
 hiddenElement.target = '_blank';
 hiddenElement.download = val.name+".txt";
 hiddenElement.click();
-})
+});
 }
 
 function spanclick() {
@@ -544,22 +631,21 @@ var mb1 = document.createElement("button");
 mb1.innerHTML="x";
 div.appendChild(mb1);
 mb1.style="right:0;position:fixed;background-color: transparent;color:#465254;font-size : 100px;";
-mb1.addEventListener ("click", function () {div.remove()});
+mb1.addEventListener ("click", function () {div.remove();});
 var Aaa=this.href;
-var img;
-if (Aaa.includes('webm')) {
+if (Aaa.match(/.*(webm|mp4)/)) {
  img=document.createElement("video");
  img.setAttribute("controls","controls");
 var poster =this.href.replace(/\/data/g,"\/data\/sample").replace(/.webm/g,".jpg");
-img.poster=poster
+img.poster=poster;
 }else {
 img=document.createElement("img");
 }
 img.src=this;
-img.style='position:absolute;top:0; left:0; right:0;bottom:0;margin:auto;max-width: 100%;max-height: 100%;';
+img.style='position:absolute;object-fit:contain;width: 100%;height: 100%;';
 div.appendChild(img);
 body.appendChild(div);
-return false}
+return false;}
 
 function fullw(aa) {
 var re = new RegExp(saved.sym ,"g");
@@ -568,34 +654,22 @@ return aa.replace(re,s =>   String.fromCharCode(s.charCodeAt(0) + 0xFF00 - 0x2
 
 
 function galdiv (cpos) {
-var gallerydiv = document.createElement("div");
-gallerydiv.style='text-align: center;overflow-y: auto;background-image: url("/packs/media/src/styles/images/hexagon/background-ea57599555451c53af1db0db4f5b2664.png");background-color: #102545; border-radius: 8px;position: fixed;left: 10vw;width: 80vw;top:5vh;';
-gallerydiv.style.zIndex=98;
-body.appendChild(gallerydiv);
-var watchpool = document.createElement("button");
-if (cpos=="pool") {
-watchpool.innerHTML="watch pool";
-} else {watchpool.innerHTML="watch post";}
-watchpool.style='background-color:#00549e; cursor: pointer;padding: 14px 16px;';
-gallerydiv.appendChild(watchpool);
-watchpool.addEventListener ("click", watch);
 gallery.style.visibility ="hidden";
-
-var galcl= document.createElement("button");
-galcl.innerHTML="x";
-gallerydiv.appendChild(galcl);
-galcl.style="position: absolute;right:0;background-color: transparent;color:#465254;font-size : 30px;";
-galcl.addEventListener ("click", function () {
-gallery.style.visibility ="visible";
-gallerydiv.remove()});
+var gallerydiv = document.createElement("div");
+body.appendChild(gallerydiv);
+watch();
+gallerydiv.style='text-align: center;overflow-y: auto;overflow-x: hidden;width:80%; height:100%;background-image: url("/packs/media/src/styles/images/hexagon/background-ea57599555451c53af1db0db4f5b2664.png");background-color: rgba(0, 0, 0, 0.8);position: fixed; top: 0; left: 10vw;';
+gallerydiv.style.zIndex = "98";
 
 function watch () {
-var n=0
+var n=0;
 gallerydiv.innerHTML="";
 if (act==0 && cpos=="pool") {
 scrape();
 }
-
+if (act==0 && cpos=="set") {
+scrape();
+}
 if (cpos=="post" && act ==0) {
 var ps=document.querySelectorAll ( '.post-preview' );
 if ( ps !== null ) { 	
@@ -604,37 +678,39 @@ src = ps[x].getAttribute('data-file-url');
 var ssmp=ps[x].getAttribute('data-large-file-url');
 list.push(src);
 sample.push(ssmp);
-act=3
+act=3;
 }}}
 
-gallerydiv.style.height="100%";
-gallerydiv.style.top=0;
 var imgsrc=list;
+
 if ( saved.res=="Sample" ) {
 imgsrc= sample;
 }
 
-
 var galc = document.createElement("button");
 galc.innerHTML="x";
 body.appendChild(galc);
-galc.style="color:#465254;background-color: transparent;position:fixed;right: 0;top:0;font-size : 10vw;";
+galc.style="color:#465254;background-color: transparent;position:fixed;right: 1vw;top:0;font-size : 10vw;";
 galc.style.zIndex = "98";
 galc.addEventListener ("click", function () {
 galc.remove();
+slide.remove();
+if (slide.innerHTML=="❙❙") {clearInterval(scrolldelay);}
 gallerydiv.remove();
 gallery.style.visibility ="visible";
 right.remove();
 left.remove();
+cgp=null;
 });
 
 var step=saved.step;
 var len=imgsrc.length;
 var pagec=Math.floor(len/step);
-if (pagec*step==len) {pagec--}
+if (pagec*step==len) {pagec--;}
 var page=0;
 var nextpost=step;
-if (len<step) {nextpost=len}
+if (len<step) {nextpost=len;}
+
 var left = document.createElement("button");
 left.style='font-size:20vw;width:10vw; height:100vh;top:0vh;background-color: rgba(0, 0, 0, 0.8);color:#465254;position: fixed; left: 0;text-align: center;';
 left.style.zIndex = "97";
@@ -649,71 +725,182 @@ right.innerHTML="›";
 body.appendChild(right);
 right.addEventListener ("click", galnavright);
 
+var slide= document.createElement("button");
+slide.innerHTML="▶";
+body.appendChild(slide);
+slide.style="color:#465254;background-color: transparent;position: fixed;left:1vw;bottom:0;font-size : 10vw;";
+slide.style.zIndex = "98";
+slide.addEventListener ("click", sslide);
+
+function  sslide  () {
+if (slide.innerHTML=="❙❙") {
+slide.innerHTML="▶";
+clearInterval(scrolldelay);
+} else {
+
+slide.innerHTML="❙❙";
+if (saved.scroll== "Fullscreen") {
+cgp=cgp-1 || page;
+var backdiv= document.createElement("div");
+body.appendChild(backdiv);
+backdiv.style='width:100%; height:100%;background-image: url("/packs/media/src/styles/images/hexagon/background-ea57599555451c53af1db0db4f5b2664.png");background-color: rgba(0, 0, 0);position: absolute;';
+
+if (backdiv.requestFullscreen) {
+    backdiv.requestFullscreen();
+backdiv.addEventListener("fullscreenchange", function() {
+if ( !document.fullscreenElement ) {sslide();backdiv.remove();}
+});
+  } else if (backdiv.mozRequestFullScreen) { 
+    backdiv.mozRequestFullScreen();
+backdiv.addEventListener("mozfullscreenchange", function() {
+if (!document.mozFullScreenElement) {sslide();backdiv.remove();}
+});
+  } else if (backdiv.webkitRequestFullscreen) { 
+    backdiv.webkitRequestFullscreen();
+backdiv.addEventListener("webkitfullscreenchange", function() {
+if (!document.webkitFullscreenElement) {sslide();backdiv.remove();}
+});
+  } 
+
+var cna = function () {
+if (cgp==list.length) {cgp=0;}
+var imag;
+if (list[cgp].match(/.*(webm|mp4)/)) {
+imag=document.createElement("video");
+imag.setAttribute("controls","controls");
+imag.poster=imgsrc[cgp];
+imag.src=list[cgp];
+} else {
+imag=document.createElement("img");
+imag.src=imgsrc[cgp];}
+imag.classList.add("imagelist");
+imag.style='transition:ease-in 500ms;width: 100%;height: 100%;object-fit:contain; opacity:0;position: absolute;';
+backdiv.appendChild(imag);
+cgp++;
+};
+
+cna();
+cna();
+
+backdiv.getElementsByClassName("imagelist")[0].style.opacity=1;
+
+scrolldelay = setInterval(function() {
+cna();
+if (backdiv.getElementsByClassName("remove").length > 0) {
+backdiv.getElementsByClassName("remove")[0].remove();
+}
+var imaglist= backdiv.getElementsByClassName("imagelist");
+imaglist[1].style.opacity=1;
+imaglist[0].style.opacity=0;
+imaglist[0].classList.add("remove");
+
+},saved.slidespeed*1000+500);
+
+} else if ( step == 1 ) {
+scrolldelay = setInterval(function() {galnavright();}, saved.slidespeed*1000+300);
+} else if (saved.scroll== "Scroll") {
+scrolldelay = setInterval(function() {
+gallerydiv.scroll(0,gallerydiv.scrollTop+4);
+if(gallerydiv.scrollHeight - gallerydiv.scrollTop <= gallerydiv.clientHeight+30) {
+sslide();
+setTimeout(function() {galnavright();gallerydiv.scrollTo(0,0);},1000);
+setTimeout(function() {sslide();},2500);
+   }
+},saved.slidespeed);
+} else {
+cgp=cgp || 0;
+    scrolldelay = setInterval(function () { 
+var images = gallerydiv.querySelectorAll("video,img"); 
+if (cgp==images.length) {
+cgp=0;
+sslide();
+galnavright();
+gallerydiv.scrollTo(0,0);
+setTimeout(function(){sslide();},1000);
+} else {
+var topPos =images[cgp].offsetTop-30-(gallerydiv.clientHeight-images[cgp].height)/2;
+
+gallerydiv.scrollTo({
+  top: topPos,
+  behavior: 'smooth'
+});
+cgp++;
+}
+},saved.slidespeed*1000);
+
+}
+}
+}
 
 function galnavleft () {
-n--
+n--;
+cgp=null;
 gallerydiv.innerHTML="";
  page=n*step;
 nextpost=(n+1)*step;
-if (page<0) {n=pagec
-page=n*step
+if (page<0) {
+n=pagec;
+page=n*step;
 nextpost=len;
-if (page==len) {page=page-step}
+if (page==len) {page=page-step;}
 }
-if (nextpost>len) {nextpost=len}
+if (nextpost>len) {nextpost=len;}
 append();
 }
 
 function galnavright () {
-n++
+n++;
+cgp=null;
 gallerydiv.innerHTML="";
  page=n*step;
 nextpost=(n+1)*step;
-if (page>=len) {n=0;
+if (page>=len) {
+n=0;
 page=0;
-nextpost=step}
-if (nextpost>len) {nextpost=len}
+nextpost=step;
+}
+if (nextpost>len) {nextpost=len;}
 append();
 }
 
 
 append();
 function append () {
-var navbar = document.createElement("span");
-navbar.style='height:30px;white-space: nowrap;position:fixed;display:block; font-size: 20px;border-radius: 6px;height: 30px; overflow:auto;color:white;background-image: url("/packs/media/src/styles/images/hexagon/background-ea57599555451c53af1db0db4f5b2664.png");background-color: #152f56; width: 80vw;';
+var navbar = document.createElement("select");
+navbar.style='background-color:#00549e;font-size: 7vmin;bottom: 0;left:50%;position:fixed;';
 navbar.style.zIndex=98;
 for (x=0;x<pagec+1;x++) {
-var pagebut = document.createElement("button");
-pagebut.textContent=x+1;
-pagebut.style='width: 30px;background-color: transparent;color:#fff;'
-if (n==x) {pagebut.disabled = true;
-pagebut.style='background-color: #102545;'}
-navbar.appendChild(pagebut);
-pagebut.addEventListener ("click", function() { n=this.innerHTML-1;
-page=n*step
-nextpost=(n+1)*step;
-if (nextpost>len) {nextpost=len}
-gallerydiv.innerHTML="";
-append()
-});
+  var option = document.createElement("option");
+  option.text = x+1;
+  navbar.add(option);
 }
 gallerydiv.appendChild(navbar);
-var aaaa= document.createElement("button");
-aaaa.style='width: 80vw;background-color:#152f56;font-size:20px; height:30px;';
-aaaa.innerHTML="loading..."
-gallerydiv.appendChild(aaaa)
+navbar.style.marginLeft='-'+navbar.offsetWidth/2+'px';
+navbar.value=n+1;
+navbar.addEventListener ("change", function() { 
+n=navbar.value-1;
+page=n*step;
+nextpost=(n+1)*step;
+if (nextpost>len) {nextpost=len;}
+gallerydiv.innerHTML="";
+append();
+});
 for (x=page;x<nextpost;x++) {
-if (list[x].includes('webm')) {
+if (list[x].match(/.*(webm|mp4)/)) {
  img=document.createElement("video");
  img.setAttribute("controls","controls");
-img.poster=imgsrc[x]
+img.poster=imgsrc[x];
 img.src=list[x];
-} else {var img=document.createElement("img");
+
+} else {img=document.createElement("img");
 img.src=imgsrc[x];}
-img.style='width: 100%;';
-if (step==1) {img.style='width: 100%;position:absolute;top:0; left:0; right:0;bottom:0;margin:auto;';}
+
+if (step==1) {
+img.style='position:absolute;object-fit:contain;width: 100%;height:100%;';
+} else {img.style='width: 100%;';}
 gallerydiv.appendChild(img);
 }
 }
 }
 }
+

@@ -1,6 +1,10 @@
 # e621-userscript
 Downloader and scrapper for e621 pools, sets and posts(tags). JavaScript (userscript) version of my bash script.
 
+Firefox link🦊:https://addons.mozilla.org/firefox/addon/e621downloader/
+
+Chrome supported to. You can download it from debug mode. Focussing on image wont be smooth
+
 Reply for functions, style edit or what you want in e621:https://e621.net/forum_topics/26236
 
 # Feature's

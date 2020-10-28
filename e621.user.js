@@ -37,6 +37,8 @@ var subscription=GM_getValue( "e621subByYusifx1");
 if (!subscription) {
 subscription={};
 subscription.pool={};
+subscription.sets={};
+subscription.tags={};
 }
 if (saved) {
 if (saved.name == undefined) {saved.name="pool-%id%_%name%/%count%_%md5%";}

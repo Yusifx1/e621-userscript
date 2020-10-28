@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         e621
 // @version      1.3.0
-// @homepageURL https://github.com/Yusifx1/e621-userscript/
-// @downloadURL        https://github.com/Yusifx1/e621-userscript/releases/latest/download/e621.user.js
+// @homepageURL	https://github.com/Yusifx1/e621-userscript-and-extension/
+// @downloadURL		https://raw.githubusercontent.com/Yusifx1/e621-userscript-and-extension/master/e621.user.js
 // @description  e621 pool and etc. downloader and parser
 // @author        Yusifx1
 // @match        https://e621.net/*
@@ -37,8 +37,6 @@ var subscription=GM_getValue( "e621subByYusifx1");
 if (!subscription) {
 subscription={};
 subscription.pool={};
-subscription.sets={};
-subscription.tags={};
 }
 if (saved) {
 if (saved.name == undefined) {saved.name="pool-%id%_%name%/%count%_%md5%";}
@@ -464,19 +462,18 @@ saved.typelist="All";
 GM_setValue("e621downByYusifx1",saved);
 }
 
-if (loc.match(/(\/posts|\/pools\/\d)/)) {
+if (loc == "/posts" || loc.match(/\/pools\/\d/)) {
 onepage();
 }
 
-if (loc.match(/(\/post_sets\/\d|\/pools\/\d)/)) {
+if (loc.match(/(\/post_sets\/\d|\/pools*)/)) {
 var button = document.createElement("button");
 topbody.appendChild(button);
 button.style = mstyle;
 button.addEventListener ("click", pool );
 }
 
-if (loc.match(/(\/posts|\/pools*|\/post_sets\/\d)/)) {
-
+if (loc == "/posts" || loc.match(/(\/pools*|\/post_sets\/\d)/)) {
 var gallery = document.createElement("button");
 gallery.innerHTML = "Gallery";
 topbody.appendChild(gallery);
@@ -1040,7 +1037,7 @@ slide.style="color:#465254;background-color: transparent;position: fixed;left:1v
 slide.style.zIndex = "98";
 slide.addEventListener ("click", sslide);
 
-function  sslide  () {
+function sslide () {
 if (slide.innerHTML=="❙❙") {
 slide.innerHTML="▶";
 clearInterval(scrolldelay);
@@ -1049,6 +1046,9 @@ clearInterval(scrolldelay);
 slide.innerHTML="❙❙";
 if (saved.scroll== "Fullscreen") {
 cgp=cgp-1 || page;
+if (cgp==-1) {
+cgp=page
+}
 var backdiv= document.createElement("div");
 body.appendChild(backdiv);
 backdiv.style='width:100%; height:100%;background-image: url("/packs/media/src/styles/images/hexagon/background-ea57599555451c53af1db0db4f5b2664.png");background-color: rgba(0, 0, 0);position: absolute;';
@@ -1298,12 +1298,22 @@ xhr.onload=function (e) {
 var pjson=xhr.responseText ;
 pjson=JSON.parse(pjson);
 
-var order =pjson.posts.map(a =>  Object.keys(subscription.pool).find( b => a.id===subscription.pool[b].preid));
-
+var order =pjson.posts.map(a => Object.keys(subscription.pool).find( b => a.id===subscription.pool[b].preid));
 for (x=0; x<pjson.posts.length;x++) {
-subscription.pool[order[x]].url=pjson.posts[x].preview.url;
+var preurl=pjson.posts[x].preview.url;
+if (!preurl) {
+preurl=pjson.posts[x].file;
+preurl="https://static1.e621.net/data/preview/" + preurl.md5[0] + preurl.md5[1] + "/" + preurl.md5[2] + preurl.md5[3]+ "/" + preurl.md5 + ".jpg";
+}
+subscription.pool[order[x]].url=preurl;
 subscription.pool[order[x]].surl="/images/blacklisted-preview.png";
 subscription.pool[order[x]].rating=pjson.posts[x].rating;
+}
+for (var poolid in subscription.pool) {
+if (!subscription.pool[poolid].url) {
+subscription.pool[poolid].url="/images/deleted-preview.png";
+subscription.pool[poolid].rating="s";
+}
 }
 GM_setValue("e621subByYusifx1",subscription);
 if (subbut.disabled==true) {

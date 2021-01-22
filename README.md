@@ -21,5 +21,5 @@ Reply for functions, style edit or what you want in e621:https://e621.net/forum_
 # To-Do
 
 + Improve style
-
++ Finish subscription 
 + When viewed Fa image it forbidden for firefox ( it can be downloaded and it will show when Fa opened one time)

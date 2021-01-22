@@ -14,12 +14,12 @@ Reply for functions, style edit or what you want in e621:https://e621.net/forum_
 + Shows links of posts file
 + Copy links of pool and tags to clipboard
 + Save pools and tags links to txt file
-+ Ignore global-blacklist.
-+ Trying find deleted posts from Furaffinity and listed in sources (webextension only. Security reason)
++ Ignores global-blacklist
++ Trying find deleted posts listed in sources and from Furaffinity (webextension only. Security reason)
 
 
 # To-Do
 
 + Improve style
-+ Finish subscription 
++ Finish subscription manager
 + When viewed Fa image it forbidden for firefox ( it can be downloaded and it will show when Fa opened one time)

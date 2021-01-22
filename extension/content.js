@@ -1617,6 +1617,7 @@ function checktime() {
     ctime = date.getTime();
     if (time == undefined) {
         time = [ctime, ctime];
+        window.localStorage.setItem("e621subchecktime", JSON.stringify(time));
     }
     var suburl = subscription.filter(post => post.type == "p").map(a => a.id);
     var interval = (ctime - time[0]) / 60000;

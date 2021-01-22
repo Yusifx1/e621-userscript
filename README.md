@@ -12,8 +12,9 @@ Reply for functions, style edit or what you want in e621:https://e621.net/forum_
 + Download and scrape pools
 + You can limit of pool download/scrape. Like if you don't want first 11 posts of pool
 + Shows links of posts file
-+ Copy links of pool and tags to clipboard
-+ Save pools and tags links to txt file
++ Copy scraped links to clipboard
++ Save scraped links to txt file
++ Subscription manager (wip)
 + Ignores global-blacklist
 + Trying find deleted posts listed in sources and from Furaffinity (webextension only. Security reason)
 

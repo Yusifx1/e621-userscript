@@ -3,7 +3,7 @@ Downloader and scrapper for e621 pools, sets and posts(tags). JavaScript (usersc
 
 Firefox link🦊: https://addons.mozilla.org/firefox/addon/e621downloader/
 
-Chrome supported to. You can download it from debug mode. Focussing on image wont be smooth
+Chrome supported to. You can download it from debug mode.
 
 Reply for functions, style edit or what you want in e621:https://e621.net/forum_topics/26236
 

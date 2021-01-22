@@ -1,4 +1,4 @@
-// =// ==UserScript==
+// ==UserScript==
 // @name         e621
 // @version      1.3.1
 // @homepageURL	https://github.com/Yusifx1/e621-userscript-and-extension/

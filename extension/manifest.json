@@ -1,30 +1,23 @@
 {
-
-  "description": "Download and scrape e621 pools and etc.",
-  "manifest_version": 2,
-  "name": "e621downloader",
-  "version": "1.3.0",
-  "homepage_url": "https://github.com/Yusifx1/e621-userscript-and-extension",
-  "icons": {
-    "48": "icons/e621-48.png"
-  },
-"browser_specific_settings": {
-  "gecko": {
-    "id": "yusif.e.shukurov@gmail.com"
-  }
-},
-"permissions": [
-    "*://*.furaffinity.net/*" ,
-  "downloads" 
-],
-"background": {
-    "page": "background.html"
-  },
-  "content_scripts": [
-    {
-      "matches": ["*://e621.net/*","*://e926.net/*"],
-      "js": ["content.js"]
-    }
-  ]
-
+	"description": "Download and scrape e621 pools and etc.",
+	"manifest_version": 2,
+	"name": "e621downloader",
+	"version": "1.3.1",
+	"homepage_url": "https://github.com/Yusifx1/e621-userscript-and-extension",
+	"icons": {
+		"48": "icons/e621-48.png"
+	},
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "yusif.e.shukurov@gmail.com"
+		}
+	},
+	"permissions": ["*://*.furaffinity.net/*", "downloads"],
+	"background": {
+		"page": "background.html"
+	},
+	"content_scripts": [{
+		"matches": ["*://e621.net/*", "*://e926.net/*"],
+		"js": ["content.js"]
+	}]
 }
